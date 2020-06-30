@@ -75,6 +75,14 @@ func main() {
 	}
 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
 
+	result, err := collection.UpdateOne(
+		context.TODO(),
+		filter,
+		bson.D{
+			{"$set", bson.D{{"word_count", word}}},
+		},
+	)
+
 	// Find a single document
 	var result Person
 
