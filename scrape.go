@@ -24,9 +24,16 @@ type Website struct {
 
 //automated script that runs d seconds
 func doEvery(d time.Duration, f func(string)) {
+        var urlArray [] string
+        urlArray = append(urlArray,"https://www.adidas.com.sg/")
+        urlArray = append(urlArray,"https://www.example.com/")
+
 	for x := range time.Tick(d) {
                 _ = x
-                f("https://www.adidas.com.sg/men-running-shoes?sort=price-low-to-high&v_size_en_sg=9_uk")
+
+                for _, url := range urlArray {
+                        f(url)
+                }
 	}
 }
 
@@ -83,10 +90,7 @@ func connectDB(url string, word_count int){
         
         var result Website
         filter := bson.D{{"url", url}}
-	err = collection.FindOne(context.TODO(), filter).Decode(&result)
-	if err != nil {
-		log.Fatal(err)
-        }
+	collection.FindOne(context.TODO(), filter).Decode(&result)
         
         if result.Url == url && result.Word_count != word_count{
                 fmt.Println("result is changed")
@@ -105,8 +109,13 @@ func connectDB(url string, word_count int){
                 }
                 _ = result
 
+        } else if (Website {}) == result {
+                new_website := Website{url, word_count}
+
+                // Insert a single document
+                collection.InsertOne(context.TODO(), new_website)
         } else {
-                fmt.Println("result is the same or url dont exist")
+                fmt.Println("result is the same")
         }
 
         client.Disconnect(ctx)
@@ -141,6 +150,6 @@ func GetReq(url string,old_word_count int,new_word_count int){
 }
 
 func main() {
-        doEvery(30* time.Minute, getSiteWordCount)
+        doEvery(5* time.Minute, getSiteWordCount)
 }
 
