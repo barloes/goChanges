@@ -112,5 +112,5 @@ func checkImage(url string) {
 }
 
 func main() {
-	doEvery(60* time.Second, checkImage)
+	doEvery(300* time.Second, checkImage)
 }
