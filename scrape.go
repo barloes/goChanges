@@ -150,6 +150,6 @@ func GetReq(url string,old_word_count int,new_word_count int){
 }
 
 func main() {
-        doEvery(5* time.Minute, getSiteWordCount)
+        doEvery(3* time.Second, getSiteWordCount)
 }
 

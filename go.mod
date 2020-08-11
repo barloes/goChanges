@@ -8,6 +8,7 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/joho/godotenv v1.3.0
 	github.com/samclarke/robotstxt v0.0.0-20171127213916-2817654b7988
+	github.com/vitali-fedulov/images v0.0.0-20191211155917-6fa8ac4e96b9
 	go.mongodb.org/mongo-driver v1.3.4
 	golang.org/x/text v0.3.2
 )
