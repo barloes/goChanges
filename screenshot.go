@@ -55,6 +55,7 @@ func GetReq(url string){
 
 func checkImage(url string) {
 
+	//command to get the image of the
     cmd := exec.Command("pageres",url,"--user-agent=XYZ/3.0")
     stdout, err := cmd.Output()
 
@@ -65,49 +66,49 @@ func checkImage(url string) {
 
 	fmt.Print(string(stdout))
 	
-		// Open photos.
-		Original_Path := "adidas.com.sg-1366x768.png"
-    	New_Path := "adidas.com.sg-1366x768 (1).png"
-		imgA, err := images.Open(Original_Path)
+	// Open photos.
+	Original_Path := "adidas.com.sg-1366x768.png"
+	New_Path := "adidas.com.sg-1366x768 (1).png"
+	imgA, err := images.Open(Original_Path)
+	if err != nil {
+		panic(err)
+	}
+	imgB, err := images.Open(New_Path)
+	if err != nil {
+		panic(err)
+	}
+	
+	// Calculate hashes and image sizes.
+	hashA, imgSizeA := images.Hash(imgA)
+	hashB, imgSizeB := images.Hash(imgB)
+	
+	// Image comparison.
+	if images.Similar(hashA, hashB, imgSizeA, imgSizeB) {
+		//similar image then delete the (1).png file (with try)
+		path := New_Path
+		err := os.Remove(path)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			return
 		}
-		imgB, err := images.Open(New_Path)
+		fmt.Println("Images are similar.")
+	} else {
+		//different image then delete the .png file and rename (1).png file to .png
+		//then send api call
+		path := Original_Path
+		err := os.Remove(path)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			return
 		}
-		
-		// Calculate hashes and image sizes.
-		hashA, imgSizeA := images.Hash(imgA)
-		hashB, imgSizeB := images.Hash(imgB)
-		
-		// Image comparison.
-		if images.Similar(hashA, hashB, imgSizeA, imgSizeB) {
-			//similar image then delete the (1).png file (with try)
-			path := New_Path
-			err := os.Remove(path)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			fmt.Println("Images are similar.")
-		} else {
-			//different image then delete the .png file and rename (1).png file to .png
-			//then send api call
-			path := Original_Path
-			err := os.Remove(path)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
 
-			err1 := os.Rename(New_Path,Original_Path ) 
-			if err1 != nil { 
-				log.Fatal(err1) 
-			} 
-			GetReq(url)
-			fmt.Println("Images are distinct.")
-		}
+		err1 := os.Rename(New_Path,Original_Path ) 
+		if err1 != nil { 
+			log.Fatal(err1) 
+		} 
+		GetReq(url)
+		fmt.Println("Images are distinct.")
+	}
 }
 
 func main() {
