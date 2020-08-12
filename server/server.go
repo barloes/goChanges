@@ -13,26 +13,18 @@ Edoardo Ottavianelli, https://edoardoottavianelli.it
 
 */
 
-package webserver
+package main
 
 import (
 	
 	records "github.com/junhuiyara/goTest/records"
 
 	"fmt"
-	"log"
 	"io/ioutil"
 	"net/http"
-	"strings"
-	"errors"
-	"net/url"
 	"regexp"
+	"log"
 )
-
-type Item struct {
-	Email string
-	Url string
-}
 
 //checkEmail checks if the email inputted is a valid email.
 func CheckEmail(email string) bool {
@@ -45,71 +37,57 @@ func CheckEmail(email string) bool {
 }
 
 //checkWebsite checks if the website inputted is a valid URL.
-func CheckWebsite(website string) (bool, error) {
-	u, err := url.Parse(website)
-	if err != nil {
-		err = errors.New("website inputted is not a valid URL")
-		return false, err
-	} else if u.Scheme == "" || u.Host == "" {
-		err = errors.New("website inputted must be an absolute URL")
-		return false, err
-	} else if u.Scheme != "http" && u.Scheme != "https" {
-		err = errors.New("website inputted must begin with http or https")
-		return false, err
+func CheckWebsite(website string) (bool) {
+	//eg. https://www.google.com/
+	//filename := key[12:len(key)]
+	fmt.Println(website[0:12])
+	fmt.Println(website[len(website)-4:len(website)])
+
+	if(website[0:12] == "https://www." && website[len(website)-4:len(website)] == ".com"){
+		fmt.Println("true")
+		return true
+	}else{
+		fmt.Println("false")
+		return false
 	}
-	return true, nil
 }
 
 
 // TODO
 func StartListen() {
 	http.HandleFunc("/", handlerHome)
-	http.HandleFunc("/save/", handlerSave)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/submit", handlerSubmit)
+    log.Fatal(http.ListenAndServe(":80", nil))
 }
 
-// TODO
 func handlerHome(w http.ResponseWriter, r *http.Request) {
-
-	setContentType(w, r)
-
-	URI := r.RequestURI
-	if URI == "/" {
-		URI = "./fe/home.html"
-	} else {
-		URI = "." + URI
-	}
-
-	page, _ := loadPage(URI)
-
-	fmt.Fprintf(w, "%s", page)
+    fmt.Println(r.URL.Path)
+    p := "." + r.URL.Path
+    if p == "./" {
+        p = "../fe/home.html"
+    }
+    http.ServeFile(w, r, p)
 }
 
 // TODO
-func handlerSave(w http.ResponseWriter, r *http.Request) {
+func handlerSubmit(w http.ResponseWriter, r *http.Request) {
 
 	email := r.FormValue("email")
-	website := r.FormValue("website")
+	website := r.FormValue("url")
 
 	// CHECK INPUT
 	emailOk := CheckEmail(email)
-	websiteOk,err := CheckWebsite(website)
-
-	if(err != nil){
-		fmt.Println(err)
-		return
-	}
+	websiteOk := CheckWebsite(website)
 
 	// IF EMAIL OK, INSERT EMAIL
 	if emailOk &&websiteOk{
-		records.DBUpdate(email,website,"jundb")
+		records.DBUpdate(website,email,"jundb")
 	}
 	// only if there are some data available print on page
 
-	// DEBUG PRINTING
-	fmt.Println("Email:", email)
-	fmt.Println("Website:", website)
-	fmt.Fprintf(w, "%s %s", email, website)
+	if r.Method == "POST" {
+		http.Redirect(w, r, "./", http.StatusSeeOther)
+	}
 }
 
 // TODO
@@ -121,19 +99,6 @@ func loadPage(filename string) (string, error) {
 	return string(body), nil
 }
 
-func setContentType(w http.ResponseWriter, r *http.Request) {
-
-	path := r.URL.Path
-	contentType := "text/html"
-
-	if strings.HasSuffix(path, ".css") {
-		contentType = "text/css"
-	} else if strings.HasSuffix(path, ".js") {
-		contentType = "application/javascript"
-	} else if strings.HasSuffix(path, ".png") {
-		contentType = "image/png"
-	}
-
-	w.Header().Set("Content-Type", contentType)
-
+func main(){
+	StartListen()
 }
