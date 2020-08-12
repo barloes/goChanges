@@ -12,8 +12,8 @@ import (
 	"github.com/vitali-fedulov/images"
 
 	"github.com/joho/godotenv"
-	email "goServer/email"
-	records "goServer/records"
+	email "github.com/junhuiyara/goTest/email"
+	records "github.com/junhuiyara/goTest/records"
 )
 
 //automated script that runs d seconds
@@ -27,6 +27,7 @@ func doEvery(d time.Duration, f func(string,string) bool) {
 
 		for key, value := range m {
 			//if image is different,send email to all the email
+			//eg https://www.google.com/" to "google.com"
 			filename := key[12:len(key)-1]
 			filename += "-1366x768"
 			fmt.Println(filename)
