@@ -111,8 +111,8 @@ func SendMailTo(receipient string,url string) {
 	//The receiver needs to be in slice as the receive supports multiple receiver
 	Receiver := []string{receipient}
 
-	Subject := "url is updated!"
-	message := "check the url!"
+	Subject := url+" is updated!"
+	message := "check the "+ url
 	bodyMessage := sender.WriteHTMLEmail(Receiver, Subject, message)
 
 	sender.SendMail(Receiver, Subject, bodyMessage)

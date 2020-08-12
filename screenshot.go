@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	email "github.com/junhuiyara/goTest/email"
 	records "github.com/junhuiyara/goTest/records"
+	server "github.com/junhuiyara/goTest/server"
 )
 
 //automated script that runs d seconds
@@ -130,5 +131,7 @@ func sameImage(url string,filename string) bool{
 
 func main() {
 
+	server.StartListen()
 	doEvery(5* time.Second, sameImage)
+	
 }
