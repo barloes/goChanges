@@ -8,21 +8,36 @@ import (
 	"time"
 	"os/exec"
 	"os"
+	"strings"
 	"github.com/vitali-fedulov/images"
 
 	"github.com/joho/godotenv"
+	email "goServer/email"
+	records "goServer/records"
 )
 
 //automated script that runs d seconds
-func doEvery(d time.Duration, f func(string)) {
-	var urlArray [] string
-	urlArray = append(urlArray,"https://www.adidas.com.sg/")
+func doEvery(d time.Duration, f func(string,string) bool) {
+
+	m := make(map[string]string)
+	m = records.ListContent("jundb")
 
 	for x := range time.Tick(d) {
 		_ = x
 
-		for _, url := range urlArray {
-			f(url)
+		for key, value := range m {
+			//if image is different,send email to all the email
+			filename := key[12:len(key)-1]
+			filename += "-1366x768"
+			fmt.Println(filename)
+			if !f(key,filename){
+				emailList := strings.Split(value, ",")
+
+				for _,emailRecipient := range emailList{
+					email.SendMailTo(emailRecipient,key)
+				}
+			}
+
 		}
 }
 }
@@ -53,7 +68,7 @@ func GetReq(url string){
 
 }
 
-func checkImage(url string) {
+func sameImage(url string,filename string) bool{
 
 	//command to get the image of the
     cmd := exec.Command("pageres",url,"--user-agent=XYZ/3.0")
@@ -61,21 +76,22 @@ func checkImage(url string) {
 
     if err != nil {
         fmt.Println(err.Error())
-        return
     }
 
 	fmt.Print(string(stdout))
 	
 	// Open photos.
-	Original_Path := "adidas.com.sg-1366x768.png"
-	New_Path := "adidas.com.sg-1366x768 (1).png"
-	imgA, err := images.Open(Original_Path)
+	Original_Path := filename + ".png"
+	New_Path := filename +" (1).png"
+	imgA, err := images.Open(Original_Path) 
 	if err != nil {
-		panic(err)
+		fmt.Println("image a not found")
+		return true
 	}
 	imgB, err := images.Open(New_Path)
 	if err != nil {
-		panic(err)
+		fmt.Println("image b not found")
+		return true
 	}
 	
 	// Calculate hashes and image sizes.
@@ -89,9 +105,9 @@ func checkImage(url string) {
 		err := os.Remove(path)
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
 		fmt.Println("Images are similar.")
+		return true
 	} else {
 		//different image then delete the .png file and rename (1).png file to .png
 		//then send api call
@@ -99,18 +115,20 @@ func checkImage(url string) {
 		err := os.Remove(path)
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
 
 		err1 := os.Rename(New_Path,Original_Path ) 
 		if err1 != nil { 
 			log.Fatal(err1) 
 		} 
-		GetReq(url)
+
 		fmt.Println("Images are distinct.")
+		
+		return false
 	}
 }
 
 func main() {
-	doEvery(300* time.Second, checkImage)
+
+	doEvery(5* time.Second, sameImage)
 }

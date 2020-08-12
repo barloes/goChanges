@@ -1,4 +1,4 @@
-package main
+package email
 
 import (
 	"bytes"
@@ -97,7 +97,7 @@ func (sender *Sender) WritePlainEmail(dest []string, subject, bodyMessage string
 	return sender.WriteEmail(dest, "text/plain", subject, bodyMessage)
 }
 
-func main() {
+func SendMailTo(receipient string,url string) {
 
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -109,7 +109,7 @@ func main() {
 	sender := NewSender(email_user, email_pass)
 
 	//The receiver needs to be in slice as the receive supports multiple receiver
-	Receiver := []string{"junhuitee@hotmail.com"}
+	Receiver := []string{receipient}
 
 	Subject := "url is updated!"
 	message := "check the url!"

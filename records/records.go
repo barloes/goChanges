@@ -1,5 +1,4 @@
-
-package main
+package records
 
 // snippet-start:[dynamodb.go.list_tables.imports]
 import (
@@ -11,7 +10,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 
-	"strings"
 	"os"
 	"fmt"
 	"log"
@@ -50,7 +48,8 @@ type Item struct {
 // 	}
 // }
 
-func main() {
+func ListContent(tableName string) map[string]string{
+
 
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -72,38 +71,38 @@ func main() {
     svc := dynamodb.New(sess)
     // snippet-end:[dynamodb.go.list_tables.session]
 
-	tableName := "jundb"
-	content := "notthere"
+	// tableName := "jundb"
+	// content := "notthere"
 	
-	result, err := svc.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(tableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"url": {
-				S: aws.String(content),
-			},
-		},
-	})
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	// result, err := svc.GetItem(&dynamodb.GetItemInput{
+	// 	TableName: aws.String(tableName),
+	// 	Key: map[string]*dynamodb.AttributeValue{
+	// 		"url": {
+	// 			S: aws.String(content),
+	// 		},
+	// 	},
+	// })
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// 	return
+	// }
 		
-	item := Item{}
+	// item := Item{}
 	
-	err = dynamodbattribute.UnmarshalMap(result.Item, &item)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
-	}
+	// err = dynamodbattribute.UnmarshalMap(result.Item, &item)
+	// if err != nil {
+	// 	panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
+	// }
 
 	//split record into list using delimeter ","
-	urlList := strings.Split(item.Email, ",")
+	// urlList := strings.Split(item.Email, ",")
 
-	for _,s := range urlList {
-		fmt.Println(s)
-	}
-	if len(item.Url) == 0 {
-		fmt.Println("item does not exist")
-	}
+	// for _,s := range urlList {
+	// 	fmt.Println(s)
+	// }
+	// if len(item.Url) == 0 {
+	// 	fmt.Println("item does not exist")
+	// }
 
 	proj := expression.NamesList(expression.Name("url"), expression.Name("email"))
 	expr, err := expression.NewBuilder().WithProjection(proj).Build()
@@ -122,7 +121,7 @@ func main() {
 	}
 	
 	// Make the DynamoDB Query API call
-	result1, err := svc.Scan(params)
+	result, err := svc.Scan(params)
 	if err != nil {
 		fmt.Println("Query API call failed:")
 		fmt.Println((err.Error()))
@@ -130,7 +129,7 @@ func main() {
 	}
 
 	m := make(map[string]string)
-	for _, i := range result1.Items {
+	for _, i := range result.Items {
 		item := Item{}
 
 		err = dynamodbattribute.UnmarshalMap(i, &item)
@@ -143,15 +142,12 @@ func main() {
 
 		// Which ones had a higher rating than minimum?
 
-
-		fmt.Println(item)
-
 		//key value pair for golang
 		m[item.Url] = item.Email
-		fmt.Println(m)
 		
 	}
 	fmt.Println(m["abc"])
+	return m
 
 
 	// newList := "1,2,3,4"
@@ -174,6 +170,3 @@ func main() {
 	// svc.UpdateItem(input)
 
 }
-
-//get the list of records every 5 seconds
-//
