@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 
+	"strings"
 	"os"
 	"fmt"
 	"log"
@@ -19,6 +20,15 @@ type Item struct {
 	Email string
 	Url string
 }
+
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+	   if a == str {
+		  return true
+	   }
+	}
+	return false
+ }
 
 func ListContent(tableName string) map[string]string{
 
@@ -80,7 +90,6 @@ func ListContent(tableName string) map[string]string{
 
 		//key value pair for golang
 		m[item.Url] = item.Email
-		
 	}
 	fmt.Println(m["abc"])
 	return m
@@ -88,7 +97,7 @@ func ListContent(tableName string) map[string]string{
 
 func DBUpdate(url string,email string,tableName string){
 
-	err := godotenv.Load(".env")
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
@@ -127,12 +136,6 @@ func DBUpdate(url string,email string,tableName string){
 		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
 	}
 
-	// //split record into list using delimeter ","
-	// urlList := strings.Split(item.Email, ",")
-
-	// for _,s := range urlList {
-	// 	fmt.Println(s)
-	// }
 	//if website dont exist in db create new one and update with the email provided
 	if len(item.Url) == 0 {
 		email += ","
@@ -154,39 +157,47 @@ func DBUpdate(url string,email string,tableName string){
 	
 		svc.UpdateItem(input)
 		
-	}else{//else filter using the url for the list of emails and append ",<new_email> and add it if not present inside already"
-		filt := expression.Name("url").Equal(expression.Value(url))
+	}else{
 
-		// Or we could get by ratings and pull out those with the right year later
-		//    filt := expression.Name("info.rating").GreaterThan(expression.Value(min_rating))
-
-		// Get back the title, year, and rating
-		proj := expression.NamesList(expression.Name("url"), expression.Name("email"))
-
-		expr, err := expression.NewBuilder().WithFilter(filt).WithProjection(proj).Build()
-		if err != nil {
-			fmt.Println("Got error building expression:")
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-
-		params := &dynamodb.ScanInput{
-			ExpressionAttributeNames:  expr.Names(),
-			ExpressionAttributeValues: expr.Values(),
-			FilterExpression:          expr.Filter(),
-			ProjectionExpression:      expr.Projection(),
-			TableName:                 aws.String(tableName),
-		}
+		fmt.Println("aaa")
+		emailList := strings.Split(item.Email, ",")
 		
-		// Make the DynamoDB Query API call
-		result, err := svc.Scan(params)
-		if err != nil {
-			fmt.Println("Query API call failed:")
-			fmt.Println((err.Error()))
-			os.Exit(1)
+		//if email already exist then return
+		if(contains(emailList,email)){
+			fmt.Println("email already existed!")
+			return
 		}
+		emailList = append(emailList,email)
+		fmt.Println(emailList)
+		var updatedEmail string = "" 
+		for _,eachEmail := range emailList{
+			if len(eachEmail) == 0{
+				continue
+			}else{
+				updatedEmail += eachEmail
+				updatedEmail += ","
+			}
+		}
+		fmt.Println(updatedEmail)
 
-		fmt.Println(result)
+		input := &dynamodb.UpdateItemInput{
+			ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+				":r": {
+					S: aws.String(updatedEmail),
+				},
+			},
+			TableName: aws.String(tableName),
+			Key: map[string]*dynamodb.AttributeValue{
+				"url": {
+					S: aws.String(content),
+				},
+			},
+			ReturnValues:     aws.String("UPDATED_NEW"),
+			UpdateExpression: aws.String("set email = :r"),
+		}
+	
+		svc.UpdateItem(input)
+
 	}
 
 }

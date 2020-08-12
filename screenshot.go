@@ -13,7 +13,6 @@ import (
 	"github.com/joho/godotenv"
 	email "github.com/junhuiyara/goTest/email"
 	records "github.com/junhuiyara/goTest/records"
-	server "github.com/junhuiyara/goTest/server"
 )
 
 //automated script that runs d seconds
@@ -27,8 +26,8 @@ func doEvery(d time.Duration, f func(string,string) bool) {
 
 		for key, value := range m {
 			//if image is different,send email to all the email
-			//eg https://www.google.com/" to "google.com"
-			filename := key[12:len(key)-1]
+			//eg https://www.google.com" to "google.com"
+			filename := key[12:len(key)]
 			filename += "-1366x768"
 			fmt.Println(filename)
 			if !f(key,filename){
@@ -130,8 +129,6 @@ func sameImage(url string,filename string) bool{
 }
 
 func main() {
-
-	server.StartListen()
 	doEvery(5* time.Second, sameImage)
 	
 }
