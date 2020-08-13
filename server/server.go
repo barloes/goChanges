@@ -64,7 +64,7 @@ func handlerHome(w http.ResponseWriter, r *http.Request) {
     fmt.Println(r.URL.Path)
     p := "." + r.URL.Path
     if p == "./" {
-        p = "../fe/home.html"
+        p = "fe/home.html"
     }
     http.ServeFile(w, r, p)
 }

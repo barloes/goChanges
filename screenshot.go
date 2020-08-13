@@ -75,7 +75,7 @@ func sameImage(url string,filename string) bool{
     stdout, err := cmd.Output()
 
     if err != nil {
-        fmt.Println(err.Error())
+		fmt.Println(err.Error())
     }
 
 	fmt.Print(string(stdout))
